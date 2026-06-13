@@ -1,0 +1,23 @@
+/* Custom Scrollbar for a premium feel */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0D0D12;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #2D2D35;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #C84C2C;
+}
+
+/* Base body transitions */
+body {
+    transition: background-color 0.3s ease;
+}
