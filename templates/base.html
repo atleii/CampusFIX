@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusFix | Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-[#0D0D12] text-gray-200 font-sans antialiased min-h-screen flex flex-col">
+
+    <nav class="bg-[#15151A] border-b border-gray-800 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="bg-[#C84C2C] text-white font-bold rounded px-2 py-1">CF</div>
+            <span class="font-semibold text-lg tracking-wide text-white">CampusFix</span>
+        </div>
+        
+        {% if session.get('user_id') %}
+        <div class="flex items-center gap-6">
+            <span class="text-sm text-gray-400">Welcome, {{ session.get('name') }} ({{ session.get('role') }})</span>
+            <a href="{{ url_for('logout') }}" class="text-sm hover:text-[#C84C2C] transition">Logout</a>
+        </div>
+        {% endif %}
+    </nav>
+
+    <div class="max-w-4xl mx-auto w-full mt-4 px-6">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="p-4 mb-4 rounded-lg text-sm font-medium {% if category == 'error' %}bg-red-900/50 text-red-200 border border-red-800{% else %}bg-green-900/50 text-green-200 border border-green-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <main class="flex-grow p-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
