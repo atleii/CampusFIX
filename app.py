@@ -1,7 +1,6 @@
 import os
 import logging
 from datetime import datetime
-from itertools import chain
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, flash, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -9,7 +8,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_, desc, func
 
-# Import Models (Ensure these are defined in your database.py)
+# Import Models
 from database import db, User, Complaint, Comment, AuditLog
 
 # ==========================================
@@ -66,16 +65,14 @@ with app.app_context():
             email='admin@campus.edu',
             password_hash=generate_password_hash('Admin@123', method='pbkdf2:sha256'),
             role='Admin',
-            department='IT Operations',
-            is_active=True
+            department='IT Operations'
         )
         tech = User(
             full_name='Bob The Builder',
             email='tech@campus.edu',
             password_hash=generate_password_hash('Tech@123', method='pbkdf2:sha256'),
             role='Tech',
-            department='Maintenance',
-            is_active=True
+            department='Maintenance'
         )
         db.session.add_all([admin, tech])
         db.session.commit()
@@ -103,7 +100,7 @@ def login():
         user = User.query.filter_by(email=email).first()
         
         if user and check_password_hash(user.password_hash, password):
-            if getattr(user, 'is_active', True) == False:
+            if not user.is_active:
                 flash('Your account has been deactivated. Contact administration.', 'error')
                 return redirect(url_for('login'))
                 
@@ -154,8 +151,7 @@ def register():
             email=email,
             password_hash=generate_password_hash(password, method='pbkdf2:sha256'),
             role='Student',
-            department=request.form.get('department', 'General'),
-            is_active=True
+            department=request.form.get('department', 'General')
         )
         
         db.session.add(new_user)
@@ -198,24 +194,22 @@ def profile():
     return render_template('profile.html', user=current_user)
 
 # ==========================================
-# 5. CORE COMPLAINT MANAGEMENT & PROGRESS
+# 5. CORE COMPLAINT MANAGEMENT (STUDENT)
 # ==========================================
 
 @app.route('/dashboard')
 @login_required
-@roles_required('Student', 'Admin')
+@roles_required('Student')
 def dashboard():
     page = request.args.get('page', 1, type=int)
+    # Pagination: 10 items per page
+    pagination = Complaint.query.filter_by(user_id=current_user.id).order_by(desc(Complaint.created_at)).paginate(page=page, per_page=10)
     
-    # Students see only their own, Admins could theoretically see all here if bypassing admin_dashboard
-    query = Complaint.query.filter_by(user_id=current_user.id)
-    pagination = query.order_by(desc(Complaint.created_at)).paginate(page=page, per_page=10)
-    
+    # Quick Stats
     stats = {
-        'total': query.count(),
-        'resolved': query.filter_by(status='Resolved').count(),
-        'pending': query.filter_by(status='Pending').count(),
-        'in_progress': query.filter_by(status='In Progress').count()
+        'total': Complaint.query.filter_by(user_id=current_user.id).count(),
+        'resolved': Complaint.query.filter_by(user_id=current_user.id, status='Resolved').count(),
+        'pending': Complaint.query.filter_by(user_id=current_user.id, status='Pending').count()
     }
     
     return render_template('student_dashboard.html', complaints=pagination.items, pagination=pagination, stats=stats)
@@ -231,14 +225,13 @@ def new_complaint():
             location=request.form.get('location'),
             priority=request.form.get('priority', 'Medium'),
             description=request.form.get('description'),
-            user_id=current_user.id,
-            status='Pending'
+            user_id=current_user.id
         )
         db.session.add(new_comp)
         db.session.commit()
         
         # Create initial audit log
-        log = AuditLog(action="Complaint submitted and pending review", user_id=current_user.id, complaint_id=new_comp.id)
+        log = AuditLog(action="Complaint submitted", user_id=current_user.id, complaint_id=new_comp.id)
         db.session.add(log)
         db.session.commit()
         
@@ -250,17 +243,13 @@ def new_complaint():
 @app.route('/complaint/<int:id>', methods=['GET', 'POST'])
 @login_required
 def view_complaint(id):
-    """
-    Displays the complaint details alongside a unified 'Progress Timeline'
-    consisting of both Audit Logs (status changes) and user Comments.
-    """
     complaint = Complaint.query.get_or_404(id)
     
     # Security: Ensure students only see their own complaints
     if current_user.role == 'Student' and complaint.user_id != current_user.id:
         abort(403)
         
-    # Handle New Comments (User & Tech interaction)
+    # Handle New Comments
     if request.method == 'POST':
         content = request.form.get('content')
         if content:
@@ -270,14 +259,7 @@ def view_complaint(id):
             flash('Comment added.', 'success')
             return redirect(url_for('view_complaint', id=complaint.id))
             
-    # Compile Progress Timeline
-    logs = AuditLog.query.filter_by(complaint_id=complaint.id).all()
-    comments = Comment.query.filter_by(complaint_id=complaint.id).all()
-    
-    # Merge logs and comments into a single list sorted by creation date to show true progress
-    timeline = sorted(chain(logs, comments), key=lambda x: x.created_at)
-            
-    return render_template('view_complaint.html', complaint=complaint, timeline=timeline)
+    return render_template('view_complaint.html', complaint=complaint)
 
 # ==========================================
 # 6. TECH STAFF DASHBOARD & WORKFLOW
@@ -290,11 +272,13 @@ def tech_dashboard():
     # Tech sees unassigned complaints OR complaints assigned to them
     query = Complaint.query.filter(or_(Complaint.assigned_to == None, Complaint.assigned_to == current_user.id))
     
+    # Filtering logic
     status_filter = request.args.get('status')
     if status_filter:
         query = query.filter(Complaint.status == status_filter)
         
     complaints = query.order_by(
+        # Custom sorting logic: Critical first
         db.case(
             (Complaint.priority == 'Critical', 1),
             (Complaint.priority == 'High', 2),
@@ -310,38 +294,28 @@ def tech_dashboard():
 @login_required
 @roles_required('Tech', 'Admin')
 def update_complaint(id):
-    """Allows tech staff to update status, claim tickets, and add progress notes."""
     complaint = Complaint.query.get_or_404(id)
     new_status = request.form.get('status')
-    progress_note = request.form.get('progress_note') # New field for granular progress
     
-    # Handle Ticket Claiming
-    if request.form.get('claim_ticket') == 'true' and not complaint.assigned_to:
-        complaint.assigned_to = current_user.id
-        db.session.add(AuditLog(action=f"Ticket claimed and assigned to {current_user.full_name}", user_id=current_user.id, complaint_id=complaint.id))
-
-    # Handle Status Changes
     if new_status and new_status != complaint.status:
         old_status = complaint.status
         complaint.status = new_status
         
+        # If claiming the ticket
+        if request.form.get('claim_ticket') == 'true' and not complaint.assigned_to:
+            complaint.assigned_to = current_user.id
+            db.session.add(AuditLog(action=f"Ticket claimed by {current_user.full_name}", user_id=current_user.id, complaint_id=complaint.id))
+
         if new_status == 'Resolved':
             complaint.resolved_at = datetime.utcnow()
             
-        action_text = f"Status updated from '{old_status}' to '{new_status}'."
-        if progress_note:
-            action_text += f" Note: {progress_note}"
-            
-        log = AuditLog(action=action_text, user_id=current_user.id, complaint_id=complaint.id)
+        # Log the change
+        log = AuditLog(action=f"Status changed from {old_status} to {new_status}", user_id=current_user.id, complaint_id=complaint.id)
         db.session.add(log)
-    
-    # Handle standalone progress notes without status change
-    elif progress_note:
-        log = AuditLog(action=f"Progress Update: {progress_note}", user_id=current_user.id, complaint_id=complaint.id)
-        db.session.add(log)
-
-    db.session.commit()
-    flash('Complaint updated successfully.', 'success')
+        db.session.commit()
+        
+        flash('Complaint updated successfully.', 'success')
+        
     return redirect(url_for('view_complaint', id=complaint.id))
 
 # ==========================================
@@ -352,12 +326,15 @@ def update_complaint(id):
 @login_required
 @roles_required('Admin')
 def admin_dashboard():
+    # Advanced System Analytics
     total_users = User.query.count()
     total_complaints = Complaint.query.count()
     
+    # Group by status
     status_counts = db.session.query(Complaint.status, func.count(Complaint.id)).group_by(Complaint.status).all()
     status_dict = dict(status_counts)
     
+    # Group by category
     category_counts = db.session.query(Complaint.category, func.count(Complaint.id)).group_by(Complaint.category).all()
     
     recent_activity = AuditLog.query.order_by(desc(AuditLog.created_at)).limit(10).all()
