@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-20 bg-[#15151A] p-8 rounded-xl border border-gray-800 shadow-2xl">
+    <h2 class="text-2xl font-semibold mb-6 text-white text-center">Sign In</h2>
+    
+    <form action="{{ url_for('login') }}" method="POST" class="space-y-5">
+        <div>
+            <label class="block text-sm text-gray-400 mb-1">Email (Use: admin@campus.edu)</label>
+            <input type="email" name="email" required class="w-full bg-[#0D0D12] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#C84C2C]">
+        </div>
+        <div>
+            <label class="block text-sm text-gray-400 mb-1">Password (Use: admin123)</label>
+            <input type="password" name="password" required class="w-full bg-[#0D0D12] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#C84C2C]">
+        </div>
+        <button type="submit" class="w-full bg-[#C84C2C] hover:bg-[#A63C22] text-white font-medium py-2 rounded-lg transition duration-200">
+            Login
+        </button>
+    </form>
+</div>
+{% endblock %}
