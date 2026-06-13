@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto mt-4">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-white">Technician Workspace</h1>
+        <p class="text-sm text-gray-400">Manage your assigned tickets and pick up new pending issues.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for complaint in complaints %}
+        <div class="bg-[#15151A] rounded-xl border {% if complaint.priority == 'Critical' %}border-red-900 shadow-[0_0_15px_rgba(220,38,38,0.15)]{% else %}border-gray-800{% endif %} p-5 flex flex-col h-full hover:border-gray-600 transition-colors">
+            
+            <div class="flex justify-between items-start mb-4">
+                <div class="flex gap-2">
+                    <span class="px-2 py-1 bg-gray-800 text-gray-300 text-xs font-mono rounded">#{{ "%04d" | format(complaint.id) }}</span>
+                    {% if complaint.priority == 'Critical' %}
+                        <span class="px-2 py-1 bg-red-500 text-white text-xs font-bold rounded animate-pulse">CRITICAL</span>
+                    {% endif %}
+                </div>
+                <span class="text-xs text-gray-500">{{ complaint.created_at.strftime('%b %d') }}</span>
+            </div>
+
+            <h3 class="text-lg font-bold text-white mb-1">{{ complaint.title }}</h3>
+            <p class="text-xs text-[#C84C2C] mb-3">{{ complaint.location }}</p>
+            
+            <p class="text-sm text-gray-400 line-clamp-3 mb-4 flex-grow">{{ complaint.description }}</p>
+
+            <div class="mt-auto pt-4 border-t border-gray-800 flex justify-between items-center">
+                <div class="text-xs">
+                    {% if complaint.assigned_to == current_user.id %}
+                        <span class="text-green-400 flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg> Assigned to You</span>
+                    {% else %}
+                        <span class="text-gray-500">Unassigned</span>
+                    {% endif %}
+                </div>
+                <a href="{{ url_for('view_complaint', id=complaint.id) }}" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs font-medium transition">
+                    Open Ticket
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-span-full py-12 text-center text-gray-500 bg-[#15151A] rounded-xl border border-gray-800">
+            No active tickets require your attention right now. Great job!
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
