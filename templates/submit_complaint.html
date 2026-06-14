@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Report Issue - CampusFIX{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-3">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-lg" style="background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%); color: white;">
+            <div class="card-body p-md-5">
+                <div class="text-center mb-5">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 70px; height: 70px;">
+                        <i class="bi bi-tools fs-1"></i>
+                    </div>
+                    <h2 class="fw-bold mb-1">Report Facility Issue</h2>
+                    <p class="text-white-50">Please provide detailed information so our tech team can assist you quickly.</p>
+                </div>
+                
+                <form action="{{ url_for('submit_complaint') }}" method="POST" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label class="form-label text-white-50 fw-bold small text-uppercase">Short Title</label>
+                        <input type="text" name="title" class="form-control form-control-lg bg-dark text-white border-secondary shadow-none" placeholder="e.g., Broken AC in Room 102" required>
+                    </div>
+                    
+                    <div class="row mb-4 g-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-white-50 fw-bold small text-uppercase">Issue Category</label>
+                            <select name="category" class="form-select form-select-lg bg-dark text-white border-secondary shadow-none" required>
+                                <option value="" disabled selected>Select category...</option>
+                                <option value="Electrical">Electrical / Lighting</option>
+                                <option value="Plumbing">Plumbing / Water</option>
+                                <option value="HVAC">HVAC (Heating/Cooling)</option>
+                                <option value="IT/Network">IT / Campus Wi-Fi</option>
+                                <option value="Structural">Structural / Furniture</option>
+                                <option value="Cleaning">Cleaning / Janitorial</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-white-50 fw-bold small text-uppercase">Urgency / Priority</label>
+                            <select name="priority" class="form-select form-select-lg bg-dark text-white border-secondary shadow-none" required>
+                                <option value="Low">Low (No immediate impact)</option>
+                                <option value="Medium" selected>Medium (Standard request)</option>
+                                <option value="High">High (Impacting work/study)</option>
+                                <option value="Critical">Critical (Safety hazard)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label text-white-50 fw-bold small text-uppercase">Exact Location</label>
+                        <input type="text" name="location" class="form-control form-control-lg bg-dark text-white border-secondary shadow-none" placeholder="Building name, Floor, Room Number" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label text-white-50 fw-bold small text-uppercase">Detailed Description</label>
+                        <textarea name="description" class="form-control bg-dark text-white border-secondary shadow-none" rows="4" placeholder="Describe the issue in detail..." required></textarea>
+                    </div>
+                    
+                    <div class="mb-5">
+                        <label class="form-label text-white-50 fw-bold small text-uppercase">Attach Photo Evidence (Optional)</label>
+                        <input type="file" name="photo" class="form-control bg-dark text-white border-secondary shadow-none" accept=".jpg,.jpeg,.png,.gif">
+                        <div class="form-text text-white-50 mt-2"><i class="bi bi-info-circle me-1"></i>Max file size 16MB. JPG or PNG preferred.</div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg fw-bold py-3 shadow">Submit Ticket</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
