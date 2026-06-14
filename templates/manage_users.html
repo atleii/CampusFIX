@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Manage Users{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+    <h2 class="fw-bold mb-0"><i class="bi bi-people text-primary me-2"></i>User Directory</h2>
+</div>
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="py-3 px-4">Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                    <th class="text-end px-4">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td class="px-4 fw-bold text-dark">{{ u.full_name }}</td>
+                    <td class="text-muted">{{ u.email }}</td>
+                    <td>
+                        <span class="badge {% if u.role == 'Admin' %}bg-danger{% elif u.role == 'Tech' %}bg-primary{% else %}bg-secondary{% endif %}">
+                            {{ u.role }}
+                        </span>
+                    </td>
+                    <td>{{ u.department or '-' }}</td>
+                    <td>
+                        {% if u.is_active %}<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3">Active</span>
+                        {% else %}<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-3">Suspended</span>{% endif %}
+                    </td>
+                    <td class="text-end px-4">
+                        {% if u.id != current_user.id %}
+                        <form action="{{ url_for('toggle_user_status', id=u.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %} rounded-pill px-3">
+                                {% if u.is_active %}Suspend{% else %}Activate{% endif %}
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
