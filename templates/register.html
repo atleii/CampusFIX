@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Register - CampusFIX{% endblock %}
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-5">
+                <h3 class="fw-bold text-dark mb-4 text-center">Create Account</h3>
+                <form method="POST" action="{{ url_for('register') }}">
+                    <div class="mb-3">
+                        <label class="form-label text-muted fw-semibold small">Full Name</label>
+                        <input type="text" name="full_name" class="form-control bg-light border-0 py-2" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted fw-semibold small">Email Address</label>
+                            <input type="email" name="email" class="form-control bg-light border-0 py-2" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted fw-semibold small">Department / Major</label>
+                            <input type="text" name="department" class="form-control bg-light border-0 py-2">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-muted fw-semibold small">Password</label>
+                        <input type="password" name="password" class="form-control bg-light border-0 py-2" required minlength="8">
+                        <div class="form-text">Must be at least 8 characters long.</div>
+                    </div>
+                    <button type="submit" class="btn btn-secondary w-100 py-3 fw-bold rounded-3">Register as Student</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
