@@ -22,6 +22,7 @@ class User(UserMixin, db.Model):
     assignments = db.relationship('Complaint', foreign_keys='Complaint.assigned_to', backref='technician', lazy=True)
     comments = db.relationship('Comment', backref='author', lazy=True)
 
+
 class Complaint(db.Model):
     __tablename__ = 'complaints'
     
@@ -33,6 +34,9 @@ class Complaint(db.Model):
     status = db.Column(db.String(20), default='Pending') # Pending, In Progress, Resolved, Closed
     priority = db.Column(db.String(20), default='Medium') # Low, Medium, High, Critical
     
+    # Support for image uploads
+    image_file = db.Column(db.String(255), nullable=True)
+    
     # Foreign Keys
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     assigned_to = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
@@ -42,9 +46,10 @@ class Complaint(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     resolved_at = db.Column(db.DateTime, nullable=True)
     
-    # Relationships
-    comments = db.relationship('Comment', backref='complaint', lazy='cascade, delete')
-    audit_logs = db.relationship('AuditLog', backref='complaint', lazy='cascade, delete')
+    # Relationships mapped correctly
+    comments = db.relationship('Comment', backref='complaint', lazy=True, cascade='all, delete-orphan')
+    audit_logs = db.relationship('AuditLog', backref='complaint', lazy=True, cascade='all, delete-orphan')
+
 
 class Comment(db.Model):
     __tablename__ = 'comments'
@@ -55,6 +60,7 @@ class Comment(db.Model):
     
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     complaint_id = db.Column(db.Integer, db.ForeignKey('complaints.id'), nullable=False)
+
 
 class AuditLog(db.Model):
     """Tracks every status change for accountability"""
