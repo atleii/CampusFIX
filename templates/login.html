@@ -1,21 +1,33 @@
 {% extends "base.html" %}
-
+{% block title %}Login - CampusFIX{% endblock %}
 {% block content %}
-<div class="max-w-md mx-auto mt-20 bg-[#15151A] p-8 rounded-xl border border-gray-800 shadow-2xl">
-    <h2 class="text-2xl font-semibold mb-6 text-white text-center">Sign In</h2>
-    
-    <form action="{{ url_for('login') }}" method="POST" class="space-y-5">
-        <div>
-            <label class="block text-sm text-gray-400 mb-1">Email (Use: admin@campus.edu)</label>
-            <input type="email" name="email" required class="w-full bg-[#0D0D12] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#C84C2C]">
+<div class="row justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="col-md-5 col-lg-4">
+        <div class="card shadow-lg border-0 overflow-hidden">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                        <i class="bi bi-person-lock fs-2"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark">Welcome Back</h3>
+                    <p class="text-muted small">Enter your credentials to access the portal.</p>
+                </div>
+                <form method="POST" action="{{ url_for('login') }}">
+                    <div class="form-floating mb-3">
+                        <input type="email" name="email" class="form-control bg-light border-0" id="emailInput" placeholder="name@example.com" required>
+                        <label for="emailInput">Email address</label>
+                    </div>
+                    <div class="form-floating mb-4">
+                        <input type="password" name="password" class="form-control bg-light border-0" id="passInput" placeholder="Password" required>
+                        <label for="passInput">Password</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-3 shadow-sm">Secure Sign In</button>
+                </form>
+            </div>
+            <div class="card-footer bg-light text-center py-3 border-0">
+                <span class="text-muted small">Need an account? <a href="{{ url_for('register') }}" class="text-primary fw-bold text-decoration-none">Register here</a></span>
+            </div>
         </div>
-        <div>
-            <label class="block text-sm text-gray-400 mb-1">Password (Use: admin123)</label>
-            <input type="password" name="password" required class="w-full bg-[#0D0D12] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#C84C2C]">
-        </div>
-        <button type="submit" class="w-full bg-[#C84C2C] hover:bg-[#A63C22] text-white font-medium py-2 rounded-lg transition duration-200">
-            Login
-        </button>
-    </form>
+    </div>
 </div>
 {% endblock %}
