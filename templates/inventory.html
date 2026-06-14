@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Tech Inventory{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+    <h2 class="fw-bold mb-0"><i class="bi bi-box-seam text-primary me-2"></i>Parts & Inventory</h2>
+    {% if current_user.role == 'Admin' %}
+    <button class="btn btn-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#addItemModal"><i class="bi bi-plus-lg me-2"></i>Add Item</button>
+    {% endif %}
+</div>
+<div class="row g-4">
+    {% for item in items %}
+    <div class="col-md-4 col-lg-3">
+        <div class="card border-0 shadow-sm h-100 border-top border-4 {% if item.quantity < 5 %}border-danger{% else %}border-success{% endif %}">
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="badge bg-light text-dark border">{{ item.category }}</span>
+                    {% if item.quantity < 5 %}<span class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>Low Stock</span>{% endif %}
+                </div>
+                <h5 class="fw-bold text-dark mb-1">{{ item.item_name }}</h5>
+                <h2 class="display-6 fw-bold mb-0 mt-3 {% if item.quantity < 5 %}text-danger{% else %}text-success{% endif %}">{{ item.quantity }} <span class="fs-6 text-muted fw-normal">units</span></h2>
+            </div>
+            {% if current_user.role == 'Tech' %}
+            <div class="card-footer bg-white border-0 pt-0">
+                <form action="{{ url_for('update_inventory', id=item.id) }}" method="POST" class="d-flex">
+                    <input type="number" name="amount" class="form-control form-control-sm me-2" value="-1" max="0" required>
+                    <button type="submit" class="btn btn-dark btn-sm w-100">Use Part</button>
+                </form>
+            </div>
+            {% elif current_user.role == 'Admin' %}
+            <div class="card-footer bg-white border-0 pt-0">
+                <form action="{{ url_for('update_inventory', id=item.id) }}" method="POST" class="d-flex">
+                    <input type="number" name="amount" class="form-control form-control-sm me-2" placeholder="+ qty" required>
+                    <button type="submit" class="btn btn-outline-primary btn-sm w-100">Restock</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5">
+        <i class="bi bi-box fs-1 text-muted d-block mb-3"></i>
+        <p class="text-muted">Inventory is empty.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="modal fade" id="addItemModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-dark text-white border-0">
+        <h5 class="modal-title fw-bold">Add New Inventory Item</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="{{ url_for('add_inventory') }}" method="POST">
+          <div class="modal-body p-4">
+              <div class="mb-3">
+                  <label class="form-label small fw-bold text-muted">Item Name</label>
+                  <input type="text" name="item_name" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label small fw-bold text-muted">Category</label>
+                  <select name="category" class="form-select" required>
+                      <option value="Electrical">Electrical</option>
+                      <option value="Plumbing">Plumbing</option>
+                      <option value="HVAC">HVAC</option>
+                      <option value="Hardware">Hardware/Tools</option>
+                  </select>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label small fw-bold text-muted">Initial Quantity</label>
+                  <input type="number" name="quantity" class="form-control" min="0" value="0" required>
+              </div>
+          </div>
+          <div class="modal-footer bg-light border-0">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary fw-bold px-4">Save Item</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
